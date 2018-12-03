@@ -4,6 +4,7 @@ const myProbotApp = require('..')
 const { Probot } = require('probot')
 // Requiring our fixtures
 const payload = require('./fixtures/issues.opened')
+// const assignedPayload = require('./fixtures/issues.assigned')
 const issueCreatedBody = { body: 'Hello, thanks for opening this issue!' }
 
 nock.disableNetConnect()
@@ -29,7 +30,6 @@ describe('My Probot app', () => {
     // Test that a comment is posted
     nock('https://api.github.com')
       .post('/repos/hiimbex/testing-things/issues/1/comments', (body) => {
-        console.log(body)
         expect(body).toMatchObject(issueCreatedBody)
         return true
       })
@@ -37,11 +37,6 @@ describe('My Probot app', () => {
 
     // Receive a webhook event
     await probot.receive({ name: 'issues', payload })
-
-    test('find user location when user is assigned', async () => {
-      // Test that a comment is posted
-      nock('https://api.github.com')
-    })
   })
 })
 
