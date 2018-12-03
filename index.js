@@ -8,8 +8,8 @@ module.exports = app => {
   })
 
   app.on('issues.assigned', async context => {
-    console.log(context.payload)
-    const issueComment = context.issue({ body: 'Hello, thanks for assigning someone to this issue.' })
+    console.log(context.payload.issue.assignees)
+    const issueComment = context.issue({ body: 'Hello, thanks for assigning someone to this issue.' })    
     return context.github.issues.createComment(issueComment)
   })
 
