@@ -1,1 +1,3 @@
 node_modules
+.data/private-key.pem
+.env
