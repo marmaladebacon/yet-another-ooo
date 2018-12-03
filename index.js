@@ -2,10 +2,30 @@ const octokit = require('@octokit/rest')()
 
 async function GetLocation (login) {
   // https://api.github.com/repos/marmaladebacon/mb-ai-movement/commits?author=marmaladebacon
-  const result = await octokit.users.getByUsername({username: login})
-  return result.location
+  const result = await octokit.users.getByUsername({username: login})  
+  return {login, location: result.data.location};
 }
 
+async function CommentWithAssigneesLocation(context){
+  console.log(context.payload.issue.assignees)
+  const possibleAssignees = context.payload.issue.assignees  
+  let promises = []
+  possibleAssignees.forEach((assignee) => {
+    promises.push(GetLocation(assignee.login))
+    
+  });
+  let results = await Promise.all(promises);
+  let textAdd = ''
+  results.forEach(data => {
+    console.log(data.login);
+    textAdd += `\n${data.login}: ${data.location}`
+  })
+  console.log("textAdd:");
+  console.log(textAdd);
+  const issueComment = context.issue({ body: `Hello, thanks for assigning someone.${textAdd}` })
+  return context.github.issues.createComment(issueComment)
+  
+}
 module.exports = app => {
   // Your code here
   app.log('Yay, the app was loaded!')
@@ -16,24 +36,16 @@ module.exports = app => {
   })
 
   app.on('issues.assigned', async context => {
-    console.log(context.payload.issue.assignees)
-    const possibleAssignees = context.payload.issue.assignees
-    let store = {}
-    let allAssignees = []
-    possibleAssignees.forEach(async (assignee) => {
-      const loc = await GetLocation(assignee.login)
-      store[assignee.login] = {
-        location: loc
-      }
-      allAssignees.push(assignee.login)
-    })
-    let textAdd = ''
-    allAssignees.forEach(login => {
-      textAdd += `\n${login}: ${store[login].location}`
-    })
-    const issueComment = context.issue({ body: `Hello, thanks for assigning someone to this issue.${textAdd}` })
-    return context.github.issues.createComment(issueComment)
+    //const textAdd = await GetString(context)
+    //const issueComment = context.issue({ body: `Hello, thanks for assigning someone to this issue.${textAdd}` })
+    await CommentWithAssigneesLocation(context)
   })
+
+  app.on('pull_request.assigned', async context => {
+    //const textAdd = await GetString(context)
+    //const issueComment = context.issue({ body: `Hello, thanks for assigning someone to this issue.${textAdd}` })
+    await CommentWithAssigneesLocation(context)
+  }))
 
   // For more information on building apps:
   // https://probot.github.io/docs/
