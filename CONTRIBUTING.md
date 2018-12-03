@@ -1,3 +1,8 @@
+## Notes:
+ * Developing on glitch means certain files are hidden. 
+   * .env
+   * .data/private-key.pem
+
 ## Contributing
 
 [fork]: /fork
